@@ -542,7 +542,7 @@ bool Board::checkmate() {
 }
 
 bool Board::isCheck() { 
-    if (x_permutations[wking_y][wking_x] == 'K' ) {return true;}
+    if (x_permutations[wking_y][wking_x] == 'K') {return true;}
     else if (x_permutations[bking_y][bking_x] == 'K') {return true;}
     return false;
 }
@@ -702,30 +702,31 @@ void Board::rookValid(bool perm) {
 void Board::kingValid(bool perm) {
 
     char piece = grid[cursor_y][cursor_x];
-    if (isBlack(piece)) {
-        bking_y = cursor_y, bking_x = cursor_x;
-        if (perm) {x_permutations[cursor_y][cursor_x] = '*';}
-        else {valid_grid[cursor_y][cursor_x] = 'X';}
-    } else if (isWhite(piece)) {
-        wking_y = cursor_y, wking_x = cursor_x;
-        if (perm) {x_permutations[cursor_y][cursor_x] = 'X';}
-        else {valid_grid[cursor_y][cursor_x] = 'X';}
-    }
+    // if (isBlack(piece)) {
+    //     bking_y = cursor_y, bking_x = cursor_x;
+    //     if (perm) {x_permutations[cursor_y][cursor_x] = '*';}
+    //     else {valid_grid[cursor_y][cursor_x] = 'X';}
+    // } else if (isWhite(piece)) {
+    //     wking_y = cursor_y, wking_x = cursor_x;
+    //     if (perm) {x_permutations[cursor_y][cursor_x] = 'X';}
+    //     else {valid_grid[cursor_y][cursor_x] = 'X';}
+    // }
+    
     for (int i = -1; i < 2; i++) {
         for (int j = -1; j < 2; j++) {
-            if (isWhite(grid[cursor_y + i][cursor_x + j]) || isBlack(grid[cursor_y + i][cursor_x + j])) {
+            if ((isWhite(grid[cursor_y + i][cursor_x + j]) || isBlack(grid[cursor_y + i][cursor_x + j])) && !isKing(grid[cursor_y + i][cursor_x + j])) {
                 if (isEnemy(grid[cursor_y + i][cursor_x + j])) {
                     if (perm) {x_permutations[cursor_y + i][cursor_x + j] = 'K';}
                     else {valid_grid[cursor_y + i][cursor_x + j] = 'K';}
                 } 
-            } else if (isBlack(piece) && x_permutations[cursor_y + i][cursor_x + j] == 'X') {
+            } else if (isBlack(piece) && (x_permutations[cursor_y + i][cursor_x + j] == 'X' || x_permutations[cursor_y + i][cursor_x + j] == 'K')) {
                 valid_grid[cursor_y + i][cursor_x + j] = '.';
-            } else if (isWhite(piece) && x_permutations[cursor_y + i][cursor_x + j] == '*') {
+            } else if (isWhite(piece) && (x_permutations[cursor_y + i][cursor_x + j] == '*' || x_permutations[cursor_y + i][cursor_x + j] == 'K')) {
                 valid_grid[cursor_y + i][cursor_x + j] = '.';
             } else {
                 if (perm) {
-                    if (isBlack(piece)) {x_permutations[cursor_y + i][cursor_x + j] = '*';}
-                    if (isWhite(piece)) {x_permutations[cursor_y + i][cursor_x + j] = 'X';}
+                    if (isBlack(piece)) {x_permutations[cursor_y + i][cursor_x + j] = '*'; bking_y = cursor_y, bking_x = cursor_x;}
+                    else if (isWhite(piece)) {x_permutations[cursor_y + i][cursor_x + j] = 'X'; wking_y = cursor_y, wking_x = cursor_x;}
                 } else {valid_grid[cursor_y + i][cursor_x + j] = 'X';}        
             }
 
@@ -747,8 +748,9 @@ void Board::horseValid(bool perm) {
             if (inRange(i, j)) {
                 if (isBlack(grid[cursor_y + i][cursor_x + j]) || isWhite(grid[cursor_y + i][cursor_x + j])) {
                     if (isEnemy(grid[cursor_y + i][cursor_x + j])) {
-                        valid_grid[cursor_y + i][cursor_x + j] = 'K';
-                        x_permutations[cursor_y + i][cursor_x + j] = 'K';
+                        if (perm) {
+                            x_permutations[cursor_y + i][cursor_x + j] = 'K';  
+                        } else {valid_grid[cursor_y + i][cursor_x + j] = 'K';}
                     }
                 } else { 
                     if (perm) {
@@ -760,8 +762,9 @@ void Board::horseValid(bool perm) {
             if (inRange(j, i)) {
                 if (isBlack(grid[cursor_y + j][cursor_x + i]) || isWhite(grid[cursor_y + j][cursor_x + i])) {
                     if (isEnemy(grid[cursor_y + j][cursor_x + i])) {
-                        valid_grid[cursor_y + j][cursor_x + i] = 'K';
-                        x_permutations[cursor_y + j][cursor_x + i] = 'K';
+                        if (perm) {
+                            x_permutations[cursor_y + j][cursor_x + i] = 'K';
+                        } else {valid_grid[cursor_y + j][cursor_x + i] = 'K';}
                     }
                 } else { 
                     if (perm) {
@@ -777,55 +780,60 @@ void Board::horseValid(bool perm) {
 void Board::pawnValid(bool perm) {
     char piece = grid[cursor_y][cursor_x];
      // diagonal kill piece
+    for (int i = 0; i < 3; i++) {
+        if (isBlack(piece) && inRange(i) && (!isBlack(grid[cursor_y + i][cursor_x]) && !isWhite(grid[cursor_y + i][cursor_x]))) {
+            if (cursor_y == 1) {
+                if (perm) {x_permutations[cursor_y + i][cursor_x] = '*';}
+                else {valid_grid[cursor_y + i][cursor_x] = 'X';}
+            }
+            if (i < 2) {
+                if (perm) {x_permutations[cursor_y + i][cursor_x] = '*';}
+                else {valid_grid[cursor_y + i][cursor_x] = 'X';}
+            }
+
+        }
+        if (isWhite(piece) && inRange(-i) && (!isBlack(grid[cursor_y - i][cursor_x]) && !isWhite(grid[cursor_y - i][cursor_x]))) {
+
+            if (cursor_y == 6) {
+                if (perm) {x_permutations[cursor_y - i][cursor_x] = 'X';}
+                else {valid_grid[cursor_y - i][cursor_x] = 'X';}
+            }
+            if (i < 2) {
+                if (perm) {x_permutations[cursor_y - i][cursor_x] = 'X';}
+                else {valid_grid[cursor_y - i][cursor_x] = 'X';}
+            }
+        }
+    }
+
     for (int i = 0; i < 2; i++) {
         // bottom right
         if (isBlack(piece)) {
+
             if (isEnemy(grid[cursor_y + i][cursor_x + i]) && inRange(i, i)) {
                 if (perm) {x_permutations[cursor_y + i][cursor_x + i] = 'K';}
                 else {valid_grid[cursor_y + i][cursor_x + i] = 'K';}
             }
             // bottom left
-            else if (isEnemy(grid[cursor_y + i][cursor_x - i]) && inRange(i, -i)) {
+            if (isEnemy(grid[cursor_y + i][cursor_x - i]) && inRange(i, -i)) {
                 if (perm) {x_permutations[cursor_y + i][cursor_x - i] = 'K';} 
                 else {valid_grid[cursor_y + i][cursor_x - i] = 'K';}
             }
-        } else if (isWhite(piece)) {
+        } 
+        if (isWhite(piece)) {
             // top right
             if (isEnemy(grid[cursor_y - i][cursor_x + i]) && inRange(-i, i)) {
                 if (perm) {x_permutations[cursor_y - i][cursor_x + i] = 'K';}
                 else {valid_grid[cursor_y - i][cursor_x + i] = 'K';}
             }
             // top left
-            else if (isEnemy(grid[cursor_y - i][cursor_x - i]) && inRange(-i, -i)) {
+            if (isEnemy(grid[cursor_y - i][cursor_x - i]) && inRange(-i, -i)) {
                 if (perm) {x_permutations[cursor_y - i][cursor_x - i] = 'K';}
                 else {valid_grid[cursor_y - i][cursor_x - i] = 'K';}
             }
         }
     }
-    for (int i = 0; i < 3; i++) {
-        if (isBlack(piece) && inRange(i) && (!isBlack(grid[cursor_y + i][cursor_x]) && !isWhite(grid[cursor_y + i][cursor_x]))) {
-            if (perm) {x_permutations[cursor_y][cursor_x] = '*';}
-            else {valid_grid[cursor_y][cursor_x] = 'X';}
-            if (cursor_y == 1) {
-                if (perm) {x_permutations[cursor_y + i][cursor_x] = '*';}
-                else {valid_grid[cursor_y + i][cursor_x] = 'X';}
-            } else if (i < 2) {
-                if (perm) {x_permutations[cursor_y + i][cursor_x] = '*';}
-                else {valid_grid[cursor_y + i][cursor_x] = 'X';}
-            }
-        } else if (isWhite(piece) && inRange(-i) && (!isBlack(grid[cursor_y - i][cursor_x]) && !isWhite(grid[cursor_y - i][cursor_x]))) {
-            if (perm) {x_permutations[cursor_y][cursor_x] = 'X';}
-            else {valid_grid[cursor_y][cursor_x] = 'X';}
-            if (cursor_y == 6) {
-                if (perm) {x_permutations[cursor_y - i][cursor_x] = 'X';}
-                else {valid_grid[cursor_y - i][cursor_x] = 'X';}
-            } else if (i < 2) {
-                if (perm) {x_permutations[cursor_y - i][cursor_x] = 'X';}
-                else {valid_grid[cursor_y - i][cursor_x] = 'X';}
-            }
-        }
-    }
 }
+
 // could do it in one method but this just is more readable
 void Board::validBlackMove() {
     char piece = grid[cursor_y][cursor_x];
@@ -870,13 +878,9 @@ int main() {
     board.allValid();
     while (!board.checkmate()) {
         board.printBoard();
-
-
         board.initValidBoard();
         board.choosePiece();
         if (board.white_turn) { board.validWhiteMove(); } 
         else if (board.black_turn) { board.validBlackMove(); }
-        
-
     }
 }
