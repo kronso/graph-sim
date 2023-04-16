@@ -6,7 +6,7 @@ using namespace std;
 
 #define ENTER 13
 #define ESC 27
-#define clear() printf("\e[1;1H\e[2J");
+#define clear() std::cout << "\x1b[H";
 
 #define GREEN_FG "\033[38;5;49m"
 #define RED_FG "\033[38;5;197m"
@@ -14,6 +14,7 @@ using namespace std;
 #define BLACK_FG "\033[38;5;239m"
 #define RESET "\033[m"
 #define HIDE "\033[8m"
+// testing
 
 class Board {
     const int HEIGHT = 8; 
@@ -876,11 +877,13 @@ int main() {
     board.initXPerm();
 
     board.allValid();
+    std::cout << "\033c";
     while (!board.checkmate()) {
         board.printBoard();
         board.initValidBoard();
         board.choosePiece();
         if (board.white_turn) { board.validWhiteMove(); } 
         else if (board.black_turn) { board.validBlackMove(); }
+        
     }
 }
